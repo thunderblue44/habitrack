@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: habitrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=habitrack
+      - DB_SSL_MODE=disable
+      - PORT=8080
+      - GIN_MODE=release
+      - JWT_SECRET=your-secret-key-change-me-in-production
+      - JWT_EXPIRATION_HOURS=24
+      - REFRESH_SECRET=your-refresh-secret-key-change-me-in-production
+      - REFRESH_EXPIRATION_DAYS=7
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
