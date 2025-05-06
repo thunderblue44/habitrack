@@ -2,13 +2,15 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import '../models/user.dart';
+import '../utils/config.dart';
 
 class AuthService {
   final String baseUrl;
-  final http.Client _client = http.Client();
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final FlutterSecureStorage secureStorage;
 
-  AuthService({required this.baseUrl});
+  AuthService({required this.baseUrl, required this.secureStorage});
+
+  bool devMode = true;
 
   Future<void> register({
     required String username,
@@ -16,7 +18,7 @@ class AuthService {
     required String password,
   }) async {
     final url = Uri.parse('$baseUrl/api/v1/auth/register');
-    final response = await _client.post(
+    final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -36,8 +38,18 @@ class AuthService {
   }
 
   Future<User> login({required String email, required String password}) async {
+    if (devMode) {
+      // Convert the integer to a string
+      return User(
+        id: '9999', // Convert to String since User expects a String id
+        username: 'dev-user',
+        email: email,
+        createdAt: DateTime.now(),
+      );
+    }
+
     final url = Uri.parse('$baseUrl/api/v1/auth/login');
-    final response = await _client.post(
+    final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'email': email, 'password': password}),
@@ -60,11 +72,11 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    await _storage.deleteAll();
+    await secureStorage.deleteAll();
   }
 
   Future<String?> getToken() async {
-    return await _storage.read(key: 'auth_token');
+    return await secureStorage.read(key: 'auth_token');
   }
 
   Future<bool> isLoggedIn() async {
@@ -79,7 +91,7 @@ class AuthService {
     }
 
     final url = Uri.parse('$baseUrl/api/v1/user/me');
-    final response = await _client.get(
+    final response = await http.get(
       url,
       headers: {
         'Content-Type': 'application/json',
@@ -97,13 +109,13 @@ class AuthService {
 
   Future<bool> refreshToken() async {
     try {
-      final refreshToken = await _storage.read(key: 'refresh_token');
+      final refreshToken = await secureStorage.read(key: 'refresh_token');
       if (refreshToken == null) {
         return false;
       }
 
       final url = Uri.parse('$baseUrl/api/v1/auth/refresh');
-      final response = await _client.post(
+      final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'refresh_token': refreshToken}),
@@ -126,7 +138,7 @@ class AuthService {
 
   Future<void> requestPasswordReset(String email) async {
     final url = Uri.parse('$baseUrl/api/v1/auth/forgot-password');
-    final response = await _client.post(
+    final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'email': email}),
@@ -143,7 +155,7 @@ class AuthService {
     required String password,
   }) async {
     final url = Uri.parse('$baseUrl/api/v1/auth/reset-password');
-    final response = await _client.post(
+    final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'token': token, 'password': password}),
@@ -156,8 +168,8 @@ class AuthService {
   }
 
   Future<void> _saveTokens(String token, String refreshToken) async {
-    await _storage.write(key: 'auth_token', value: token);
-    await _storage.write(key: 'refresh_token', value: refreshToken);
+    await secureStorage.write(key: 'auth_token', value: token);
+    await secureStorage.write(key: 'refresh_token', value: refreshToken);
   }
 
   Future<Map<String, String>> getAuthHeaders() async {

@@ -7,10 +7,10 @@ class ErrorMessageWidget extends StatelessWidget {
   final bool isCompact;
 
   const ErrorMessageWidget({
-    Key? key,
+    super.key,
     required this.error,
     this.isCompact = false,
-  }) : super(key: key);
+  });
 
   // For backward compatibility
   factory ErrorMessageWidget.simple({

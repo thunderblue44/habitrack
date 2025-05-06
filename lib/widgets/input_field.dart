@@ -15,7 +15,7 @@ class InputField extends StatelessWidget {
   final VoidCallback? onEditingComplete;
 
   const InputField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.label,
     this.hint = '',
@@ -28,7 +28,7 @@ class InputField extends StatelessWidget {
     this.textInputAction,
     this.focusNode,
     this.onEditingComplete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

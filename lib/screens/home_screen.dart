@@ -12,7 +12,7 @@ import 'create_habit_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -546,7 +546,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 },
               );
-            }).toList(),
+            }),
 
             if (topStats.isEmpty)
               const Padding(
@@ -610,7 +610,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   size: 28,
                 ),
               );
-            }).toList(),
+            }),
 
             if (sortedStats.isEmpty)
               const Padding(
@@ -787,7 +787,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: 80,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
-                            color: Theme.of(context).colorScheme.surfaceVariant,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
                           ),
                           child: Text(
                             value.toString(),

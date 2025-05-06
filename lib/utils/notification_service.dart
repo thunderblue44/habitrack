@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import '../models/habit.dart';
+import 'dart:io';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -53,13 +54,25 @@ class NotificationService {
   }
 
   Future<void> _requestPermissions() async {
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.requestNotificationsPermission();
+    // For iOS, permissions are handled in initialization settings
+    if (!Platform.isAndroid) return;
 
-    // For iOS, permissions are handled in the initialization settings
+    // For Android, we'll let the system handle permissions when needed
+    // Android <13 doesn't need runtime permission
+    // Android 13+ will prompt when notifications are first shown
+    try {
+      // Just log that we have the platform implementation
+      final androidImplementation =
+          flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
+      print(
+        'Android notification implementation available: ${androidImplementation != null}',
+      );
+    } catch (e) {
+      print('Error with notification permissions: $e');
+    }
   }
 
   Future<void> scheduleHabitReminder({

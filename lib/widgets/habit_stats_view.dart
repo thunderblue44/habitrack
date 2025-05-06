@@ -12,11 +12,11 @@ class HabitStatsView extends StatelessWidget {
   final DateTime startDate;
 
   const HabitStatsView({
-    Key? key,
+    super.key,
     required this.habit,
     required this.tracks,
     required this.startDate,
-  }) : super(key: key);
+  });
 
   // Convert habit.color (which might be a String or int) to a Flutter Color
   Color _getHabitColor(BuildContext context) {

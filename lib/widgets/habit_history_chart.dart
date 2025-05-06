@@ -11,10 +11,10 @@ class HabitHistoryChart extends StatefulWidget {
   final Color color;
 
   const HabitHistoryChart({
-    Key? key,
+    super.key,
     required this.habitTracks,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
   State<HabitHistoryChart> createState() => _HabitHistoryChartState();
@@ -89,8 +89,8 @@ class _HabitHistoryChartState extends State<HabitHistoryChart> {
           });
         },
         style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-            if (states.contains(MaterialState.selected)) {
+          backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+            if (states.contains(WidgetState.selected)) {
               return widget.color.withOpacity(0.8);
             }
             return Colors.transparent;

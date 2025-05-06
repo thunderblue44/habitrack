@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../services/auth_service.dart';
-import '../utils/config.dart';
 
 enum HttpMethod { get, post, put, patch, delete }
 

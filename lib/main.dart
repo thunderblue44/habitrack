@@ -19,26 +19,28 @@ import 'utils/notification_service.dart';
 void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   // Initialize services
   final prefs = await SharedPreferences.getInstance();
   const secureStorage = FlutterSecureStorage();
   final notificationService = NotificationService();
   await notificationService.init();
-  
+
   // Error handling for the entire app
   runZonedGuarded(
-    () => runApp(MyApp(
-      prefs: prefs, 
-      secureStorage: secureStorage,
-      notificationService: notificationService,
-    )),
+    () => runApp(
+      MyApp(
+        prefs: prefs,
+        secureStorage: secureStorage,
+        notificationService: notificationService,
+      ),
+    ),
     (error, stack) {
       // In a production app, you might want to log this to a service like Firebase Crashlytics
       debugPrint('Uncaught error: $error');
@@ -53,16 +55,20 @@ class MyApp extends StatelessWidget {
   final NotificationService notificationService;
 
   const MyApp({
-    Key? key,
+    super.key,
     required this.prefs,
     required this.secureStorage,
     required this.notificationService,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     // Create services
-    final authService = AuthService(baseUrl: Config.apiUrl);
+    final authService = AuthService(
+      baseUrl: Config.apiUrl,
+      secureStorage: secureStorage,
+    );
+
     final habitService = HabitService(
       baseUrl: Config.apiUrl,
       authService: authService,
@@ -70,9 +76,7 @@ class MyApp extends StatelessWidget {
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => ThemeProvider(prefs),
-        ),
+        ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(
           create: (_) => AuthProvider(authService: authService),
         ),
@@ -93,9 +97,10 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _getInitialScreen() {
-    final bool onboardingComplete = prefs.getBool(AppConstants.prefOnboardingComplete) ?? false;
+    final bool onboardingComplete =
+        prefs.getBool(AppConstants.prefOnboardingComplete) ?? false;
     return onboardingComplete ? const SplashScreen() : const OnboardingScreen();
   }
 }

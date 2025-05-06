@@ -1,6 +1,18 @@
 class Config {
-  // API configuration
-  static const String apiUrl = 'http://localhost:8080/api/v1';
+  // Your development machine's WiFi IP address
+  static const String host = "192.168.1.120";
+
+  // The port your backend is running on
+  static const int port = 8080;
+
+  // Base URLs
+  static String get apiUrl => "http://$host:$port/api/v1";
+  static String get authUrl => "$apiUrl/auth";
+  static String get habitsUrl => "$apiUrl/habits";
+
+  // Add other endpoints as needed
+  static String get usersUrl => "$apiUrl/users";
+  static String get statsUrl => "$apiUrl/stats";
 
   // Authentication endpoints
   static const String loginEndpoint = '/auth/login';

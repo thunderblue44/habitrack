@@ -7,7 +7,7 @@ import '../utils/habit_utils.dart';
 import '../widgets/input_field.dart';
 
 class CreateHabitScreen extends StatefulWidget {
-  const CreateHabitScreen({Key? key}) : super(key: key);
+  const CreateHabitScreen({super.key});
 
   @override
   State<CreateHabitScreen> createState() => _CreateHabitScreenState();
@@ -78,7 +78,7 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
 
       // Create the habit
       final habit = Habit(
-        userId: authProvider.user!.id,
+        userId: int.parse(authProvider.user!.id),
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         type: _habitType,
@@ -359,9 +359,9 @@ class _CreateHabitScreenState extends State<CreateHabitScreen> {
                                                 ? HabitColors.getColor(
                                                   _selectedColor,
                                                 ).withOpacity(0.2)
-                                                : Theme.of(
-                                                  context,
-                                                ).colorScheme.surfaceVariant,
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .surfaceContainerHighest,
                                         borderRadius: BorderRadius.circular(12),
                                         border:
                                             isSelected

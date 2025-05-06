@@ -11,11 +11,11 @@ class HabitCalendarView extends StatefulWidget {
   final DateTime firstDate;
 
   const HabitCalendarView({
-    Key? key,
+    super.key,
     required this.tracks,
     required this.habitColor,
     required this.firstDate,
-  }) : super(key: key);
+  });
 
   @override
   State<HabitCalendarView> createState() => _HabitCalendarViewState();
@@ -141,7 +141,7 @@ class _HabitCalendarViewState extends State<HabitCalendarView> {
         prevDate = trackDay;
       } else {
         // Calculate difference in days
-        final difference = trackDay.difference(prevDate!).inDays;
+        final difference = trackDay.difference(prevDate).inDays;
 
         if (difference == 1) {
           // Consecutive day

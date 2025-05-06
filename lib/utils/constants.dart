@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// A class containing app-wide constants for consistent styling and behavior
 class AppConstants {
   // App Information

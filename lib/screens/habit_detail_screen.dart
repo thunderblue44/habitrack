@@ -12,7 +12,7 @@ import 'edit_habit_screen.dart';
 class HabitDetailScreen extends StatefulWidget {
   final int habitId;
 
-  const HabitDetailScreen({Key? key, required this.habitId}) : super(key: key);
+  const HabitDetailScreen({super.key, required this.habitId});
 
   @override
   State<HabitDetailScreen> createState() => _HabitDetailScreenState();
@@ -455,7 +455,9 @@ class _HabitDetailScreenState extends State<HabitDetailScreen>
                           value: _stats!.successRate / 100,
                           strokeWidth: 12,
                           backgroundColor:
-                              Theme.of(context).colorScheme.surfaceVariant,
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             _getColorForSuccessRate(_stats!.successRate),
                           ),

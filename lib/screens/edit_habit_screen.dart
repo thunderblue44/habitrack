@@ -8,7 +8,7 @@ import '../widgets/input_field.dart';
 class EditHabitScreen extends StatefulWidget {
   final Habit habit;
 
-  const EditHabitScreen({Key? key, required this.habit}) : super(key: key);
+  const EditHabitScreen({super.key, required this.habit});
 
   @override
   State<EditHabitScreen> createState() => _EditHabitScreenState();
@@ -416,9 +416,9 @@ class _EditHabitScreenState extends State<EditHabitScreen> {
                                                 ? HabitColors.getColor(
                                                   _selectedColor,
                                                 ).withOpacity(0.2)
-                                                : Theme.of(
-                                                  context,
-                                                ).colorScheme.surfaceVariant,
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .surfaceContainerHighest,
                                         borderRadius: BorderRadius.circular(12),
                                         border:
                                             isSelected

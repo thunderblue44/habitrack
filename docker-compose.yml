@@ -33,7 +33,7 @@ services:
       - REFRESH_SECRET=your-refresh-secret-key-change-me-in-production
       - REFRESH_EXPIRATION_DAYS=7
     ports:
-      - "8080:8080"
+      - "0.0.0.0:8080:8080"
 
 volumes:
   postgres_data:

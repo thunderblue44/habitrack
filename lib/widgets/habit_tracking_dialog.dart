@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../models/habit.dart';
 import '../models/habit_track.dart';
 import '../providers/habit_provider.dart';
-import '../utils/constants.dart';
 import 'loading_indicator.dart';
 
 class HabitTrackingDialog extends StatefulWidget {
