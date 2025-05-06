@@ -18,12 +18,14 @@
 ## 🛠 Tech Stack
 
 ### Mobile App (Flutter)
+
 - Dart & Flutter SDK
 - Platform: Android only
 - State Management: (add here, e.g., Provider, Riverpod, etc.)
 - Local storage: (add if used, e.g., Hive, SharedPreferences)
 
 ### Backend (Go + PostgreSQL)
+
 - REST API with Go
 - PostgreSQL for data persistence
 - Dockerized service for deployment
@@ -38,6 +40,42 @@
 ## 📦 Installation
 
 ### Backend
+
 ```bash
 cd backend
 docker compose up --build
+```
+
+### Flutter App
+
+```bash
+cd habitrack_app
+flutter pub get
+flutter run
+```
+
+---
+
+## 📁 Folder Structure
+
+```
+habittrack/
+├── habitrack_app/        # Flutter app
+├── backend/              # Go backend
+│   ├── Dockerfile
+│   └── main.go
+├── README.md
+└── docker-compose.yml
+```
+
+---
+
+## 🧪 Status
+
+This project is currently under active development as a university capstone. Contributions are welcome!
+
+---
+
+## 📄 License
+
+MIT License – see `LICENSE` file for details.
