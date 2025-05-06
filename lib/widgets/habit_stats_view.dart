@@ -1,0 +1,549 @@
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../models/habit.dart';
+import '../models/habit_track.dart';
+import '../utils/constants.dart';
+import '../utils/habit_utils.dart';
+
+class HabitStatsView extends StatelessWidget {
+  final Habit habit;
+  final List<HabitTrackRecord> tracks;
+  final DateTime startDate;
+
+  const HabitStatsView({
+    Key? key,
+    required this.habit,
+    required this.tracks,
+    required this.startDate,
+  }) : super(key: key);
+
+  // Convert habit.color (which might be a String or int) to a Flutter Color
+  Color _getHabitColor(BuildContext context) {
+    if (habit.color == null) {
+      return Theme.of(context).colorScheme.primary;
+    }
+
+    // If habit.color is an int, convert it to a Color
+    if (habit.color is int) {
+      return Color(habit.color as int);
+    }
+
+    // If habit.color is a String, parse it to a Color
+    if (habit.color is String) {
+      try {
+        // Try to parse a hex color string (like "#FFAABB")
+        final colorString = habit.color as String;
+        if (colorString.startsWith('#')) {
+          return Color(int.parse('FF${colorString.substring(1)}', radix: 16));
+        }
+      } catch (e) {
+        // Fall back to primary color if parsing fails
+        return Theme.of(context).colorScheme.primary;
+      }
+    }
+
+    // Default fallback
+    return Theme.of(context).colorScheme.primary;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Calculate statistics
+    final stats = _calculateStats();
+
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: [
+        _buildOverallProgressSection(context, stats),
+        const SizedBox(height: 24),
+        _buildCompletionRateSection(context, stats),
+        const SizedBox(height: 24),
+        _buildWeekdayDistributionSection(context, stats),
+        const SizedBox(height: 24),
+        _buildTimeDistributionSection(context, stats),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildOverallProgressSection(
+    BuildContext context,
+    Map<String, dynamic> stats,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Overall Progress', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                context,
+                title: 'Total Completions',
+                value: '${stats['totalCompletions']}',
+                icon: Icons.check_circle_outline,
+                color: _getHabitColor(context),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildStatCard(
+                context,
+                title: 'Current Streak',
+                value: '${stats['currentStreak']}',
+                icon: Icons.local_fire_department,
+                color: Colors.orange,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                context,
+                title: 'Days Active',
+                value: '${stats['daysActive']}',
+                icon: Icons.calendar_today,
+                color: Colors.blue,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildStatCard(
+                context,
+                title: 'Completion Rate',
+                value: '${(stats['completionRate'] * 100).toStringAsFixed(0)}%',
+                icon: Icons.percent,
+                color: Colors.green,
+              ),
+            ),
+          ],
+        ),
+      ],
+    ).animate().fade().slideY(begin: 0.1, end: 0);
+  }
+
+  Widget _buildStatCard(
+    BuildContext context, {
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.bodyMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompletionRateSection(
+    BuildContext context,
+    Map<String, dynamic> stats,
+  ) {
+    final completionRate = stats['completionRate'] as double;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Completion Rate', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 16),
+        AspectRatio(
+          aspectRatio: 2.5,
+          child: PieChart(
+            PieChartData(
+              sectionsSpace: 2,
+              centerSpaceRadius: 40,
+              sections: [
+                PieChartSectionData(
+                  color: _getHabitColor(context),
+                  value: completionRate * 100,
+                  title: '${(completionRate * 100).toStringAsFixed(0)}%',
+                  radius: 50,
+                  titleStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                PieChartSectionData(
+                  color: Colors.grey.withOpacity(0.3),
+                  value: (1 - completionRate) * 100,
+                  title: '',
+                  radius: 50,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: _getHabitColor(context),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('Complete'),
+            const SizedBox(width: 24),
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('Missed'),
+          ],
+        ),
+      ],
+    ).animate().fade().slideY(begin: 0.1, end: 0);
+  }
+
+  Widget _buildWeekdayDistributionSection(
+    BuildContext context,
+    Map<String, dynamic> stats,
+  ) {
+    final weekdayData = stats['weekdayDistribution'] as Map<int, int>;
+    final maxValue =
+        weekdayData.isEmpty
+            ? 0
+            : weekdayData.values.reduce((a, b) => a > b ? a : b);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Weekday Distribution',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 16),
+        AspectRatio(
+          aspectRatio: 1.7,
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              maxY: (maxValue + 1).toDouble(),
+              barTouchData: BarTouchData(enabled: false),
+              titlesData: FlTitlesData(
+                show: true,
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (value, meta) {
+                      const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+                      final index = value.toInt();
+                      if (index >= 0 && index < weekdays.length) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(weekdays[index]),
+                        );
+                      }
+                      return const SizedBox();
+                    },
+                    reservedSize: 30,
+                  ),
+                ),
+                leftTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              barGroups: List.generate(7, (index) {
+                // Adjust index because Dart uses 1-7 for Monday-Sunday, and we display 0-6
+                final weekdayIndex = index + 1 > 7 ? 1 : index + 1;
+                final value = weekdayData[weekdayIndex] ?? 0;
+
+                return BarChartGroupData(
+                  x: index,
+                  barRods: [
+                    BarChartRodData(
+                      toY: value.toDouble(),
+                      color: _getHabitColor(context),
+                      width: 20,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(6),
+                        topRight: Radius.circular(6),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ),
+          ),
+        ),
+      ],
+    ).animate().fade().slideY(begin: 0.1, end: 0);
+  }
+
+  Widget _buildTimeDistributionSection(
+    BuildContext context,
+    Map<String, dynamic> stats,
+  ) {
+    final timeData = stats['timeDistribution'] as Map<int, int>;
+    final maxValue =
+        timeData.isEmpty ? 0 : timeData.values.reduce((a, b) => a > b ? a : b);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Time of Day Distribution',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 16),
+        AspectRatio(
+          aspectRatio: 1.7,
+          child: LineChart(
+            LineChartData(
+              lineTouchData: LineTouchData(
+                enabled: true,
+                touchTooltipData: LineTouchTooltipData(
+                  tooltipBgColor: Theme.of(context).colorScheme.surface,
+                  getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                    return touchedSpots.map((spot) {
+                      final hour = spot.x.toInt();
+                      final count = spot.y.toInt();
+                      return LineTooltipItem(
+                        '$hour:00 - ${count}x',
+                        TextStyle(
+                          color: _getHabitColor(context),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    }).toList();
+                  },
+                ),
+              ),
+              gridData: FlGridData(show: false),
+              titlesData: FlTitlesData(
+                show: true,
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (value, meta) {
+                      final hour = value.toInt();
+                      if (hour % 6 == 0) {
+                        // Show every 6 hours
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text('$hour:00'),
+                        );
+                      }
+                      return const SizedBox();
+                    },
+                    reservedSize: 30,
+                  ),
+                ),
+                leftTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: [
+                    for (int hour = 0; hour < 24; hour++)
+                      FlSpot(hour.toDouble(), (timeData[hour] ?? 0).toDouble()),
+                  ],
+                  isCurved: true,
+                  color: _getHabitColor(context),
+                  barWidth: 3,
+                  dotData: FlDotData(show: false),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    color: _getHabitColor(context).withOpacity(0.2),
+                  ),
+                ),
+              ],
+              minY: 0,
+              maxY: (maxValue + 1).toDouble(),
+            ),
+          ),
+        ),
+      ],
+    ).animate().fade().slideY(begin: 0.1, end: 0);
+  }
+
+  Map<String, dynamic> _calculateStats() {
+    if (tracks.isEmpty) {
+      return {
+        'totalCompletions': 0,
+        'daysActive': 0,
+        'currentStreak': 0,
+        'completionRate': 0.0,
+        'weekdayDistribution': <int, int>{},
+        'timeDistribution': <int, int>{},
+      };
+    }
+
+    // Total completions
+    final totalCompletions = tracks.length;
+
+    // Calculate unique days with completions
+    final uniqueDays =
+        tracks
+            .map(
+              (track) =>
+                  DateTime(track.date.year, track.date.month, track.date.day),
+            )
+            .toSet()
+            .length;
+
+    // Calculate days since habit started
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final habitStartDate = DateTime(
+      startDate.year,
+      startDate.month,
+      startDate.day,
+    );
+    final daysSinceStart = today.difference(habitStartDate).inDays + 1;
+
+    // Completion rate (days completed / days since start)
+    final completionRate =
+        daysSinceStart > 0 ? uniqueDays / daysSinceStart : 0.0;
+
+    // Current streak calculation
+    final sortedTracks = List<HabitTrackRecord>.from(tracks)
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    int currentStreak = 0;
+    DateTime? lastActiveDate;
+
+    // Check if habit was completed today
+    final todayTracks = tracks.where(
+      (track) =>
+          track.date.year == today.year &&
+          track.date.month == today.month &&
+          track.date.day == today.day,
+    );
+
+    if (todayTracks.isNotEmpty) {
+      // Habit completed today, start streak at 1
+      currentStreak = 1;
+      lastActiveDate = today.subtract(const Duration(days: 1));
+    } else {
+      // Check if habit was completed yesterday
+      final yesterday = today.subtract(const Duration(days: 1));
+      final yesterdayTracks = tracks.where(
+        (track) =>
+            track.date.year == yesterday.year &&
+            track.date.month == yesterday.month &&
+            track.date.day == yesterday.day,
+      );
+
+      if (yesterdayTracks.isNotEmpty) {
+        // Habit completed yesterday, start streak at 1
+        currentStreak = 1;
+        lastActiveDate = yesterday.subtract(const Duration(days: 1));
+      } else {
+        // No recent activity
+        currentStreak = 0;
+        lastActiveDate = null;
+      }
+    }
+
+    // Continue checking previous days for streak
+    if (lastActiveDate != null) {
+      for (var i = 0; i < daysSinceStart; i++) {
+        final checkDate =
+            lastActiveDate!; // Use null assertion operator since we checked above
+        final checkDateTracks = tracks.where(
+          (track) =>
+              track.date.year == checkDate.year &&
+              track.date.month == checkDate.month &&
+              track.date.day == checkDate.day,
+        );
+
+        if (checkDateTracks.isNotEmpty) {
+          currentStreak++;
+          lastActiveDate = checkDate.subtract(const Duration(days: 1));
+        } else {
+          break;
+        }
+      }
+    }
+
+    // Calculate weekday distribution (Monday = 1, Sunday = 7)
+    final weekdayDistribution = <int, int>{};
+    for (final track in tracks) {
+      final weekday = track.date.weekday;
+      weekdayDistribution[weekday] = (weekdayDistribution[weekday] ?? 0) + 1;
+    }
+
+    // Calculate time of day distribution (0-23 hours)
+    final timeDistribution = <int, int>{};
+    for (final track in tracks) {
+      final hour = track.date.hour;
+      timeDistribution[hour] = (timeDistribution[hour] ?? 0) + 1;
+    }
+
+    return {
+      'totalCompletions': totalCompletions,
+      'daysActive': uniqueDays,
+      'daysSinceStart': daysSinceStart,
+      'currentStreak': currentStreak,
+      'completionRate': completionRate,
+      'weekdayDistribution': weekdayDistribution,
+      'timeDistribution': timeDistribution,
+    };
+  }
+}

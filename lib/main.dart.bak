@@ -1,4 +1,3 @@
-// filepath: /home/karsterr/Projects/habitrack/lib/main.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -45,26 +44,27 @@ void main() async {
       debugPrint('$stack');
     },
   );
-}
 
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
   final FlutterSecureStorage secureStorage;
-  final NotificationService notificationService;
 
   const MyApp({
     Key? key,
     required this.prefs,
     required this.secureStorage,
-    required this.notificationService,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // Create services
-    final authService = AuthService(baseUrl: Config.apiUrl);
+    final authService = AuthService(
+      apiUrl: Config.apiUrl,
+      secureStorage: secureStorage,
+    );
+    
     final habitService = HabitService(
-      baseUrl: Config.apiUrl,
+      apiUrl: Config.apiUrl,
       authService: authService,
     );
 
@@ -79,23 +79,17 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => HabitProvider(habitService: habitService),
         ),
-        Provider.value(value: notificationService),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
           return MaterialApp(
-            title: AppConstants.appName,
+            title: 'HabiTrack',
             theme: themeProvider.themeData,
             debugShowCheckedModeBanner: false,
-            home: _getInitialScreen(),
+            home: const SplashScreen(),
           );
         },
       ),
     );
-  }
-  
-  Widget _getInitialScreen() {
-    final bool onboardingComplete = prefs.getBool(AppConstants.prefOnboardingComplete) ?? false;
-    return onboardingComplete ? const SplashScreen() : const OnboardingScreen();
   }
 }

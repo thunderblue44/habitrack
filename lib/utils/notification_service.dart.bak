@@ -1,0 +1,179 @@
+import 'package:flutter/material.dart';
+import 'package:flut    // iOS permissions are now handled through DarwinFlutterLocalNotificationsPlugin
+    // but we'll keep this comment as a reminder that iOS permissions are handled
+    // through the initialization settingsocal_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_data;
+import '../models/habit.dart';
+
+class NotificationService {
+  static final NotificationService _instance = NotificationService._internal();
+
+  factory NotificationService() => _instance;
+
+  NotificationService._internal();
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  Future<void> init() async {
+    // Initialize timezone database
+    tz_data.initializeTimeZones();
+
+    // Initialize notification settings
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('app_icon');
+
+    final DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+          onDidReceiveLocalNotification: (id, title, body, payload) async {
+            // Handle iOS foreground notification
+          },
+        );
+
+    final InitializationSettings initializationSettings =
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsIOS,
+        );
+
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (
+        NotificationResponse notificationResponse,
+      ) {
+        // Handle notification tap
+      },
+    );
+
+    // Request permissions
+    await _requestPermissions();
+  }
+
+  Future<void> _requestPermissions() async {
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestPermission();
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          DarwinFlutterLocalNotificationsPlugin
+        >()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
+  }
+
+  Future<void> scheduleHabitReminder({
+    required Habit habit,
+    required TimeOfDay reminderTime,
+    required List<int> dayIndices,
+  }) async {
+    if (!habit.reminderEnabled || habit.id == null) {
+      return;
+    }
+
+    // Cancel any existing reminders for this habit
+    await cancelHabitReminders(habit.id!);
+
+    // Extract hours and minutes
+    final hour = reminderTime.hour;
+    final minute = reminderTime.minute;
+
+    // Schedule for each selected day
+    for (final dayIndex in dayIndices) {
+      // Convert to day of week where 1 = Monday, 7 = Sunday
+      // Flutter's DateTime uses 1 = Monday, 7 = Sunday
+      final DateTime now = DateTime.now();
+      DateTime scheduledDate = _nextInstanceOfDay(dayIndex, hour, minute);
+
+      // If the calculated date is in the past, add 7 days
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 7));
+      }
+
+      // Schedule the notification
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        // Use unique ID for each day (habit ID * 10 + day index)
+        habit.id! * 10 + dayIndex,
+        'HabiTrack Reminder',
+        'Time to work on your habit: ${habit.name}',
+        tz.TZDateTime.from(scheduledDate, tz.local),
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'habit_reminders',
+            'Habit Reminders',
+            channelDescription: 'Notifications for habit reminders',
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        androidAllowWhileIdle: true,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+        payload: habit.id.toString(),
+      );
+    }
+  }
+
+  DateTime _nextInstanceOfDay(int dayOfWeek, int hour, int minute) {
+    DateTime now = DateTime.now();
+    // Get the date of the next occurrence of the specified day
+    int daysUntil = (dayOfWeek - now.weekday) % 7;
+    if (daysUntil == 0 &&
+        (now.hour > hour || (now.hour == hour && now.minute >= minute))) {
+      daysUntil = 7;
+    }
+
+    return DateTime(now.year, now.month, now.day + daysUntil, hour, minute);
+  }
+
+  Future<void> cancelHabitReminders(int habitId) async {
+    // Cancel reminders for each possible day
+    for (int i = 1; i <= 7; i++) {
+      await flutterLocalNotificationsPlugin.cancel(habitId * 10 + i);
+    }
+  }
+
+  Future<void> cancelAllNotifications() async {
+    await flutterLocalNotificationsPlugin.cancelAll();
+  }
+
+  Future<void> showOneTimeNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'one_time_channel',
+          'One Time Notifications',
+          channelDescription: 'For one time notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+        );
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      title,
+      body,
+      details,
+      payload: payload,
+    );
+  }
+}

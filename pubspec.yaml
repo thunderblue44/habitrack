@@ -1,6 +1,6 @@
 name: habitrack
-description: "A new Flutter project."
-publish_to: 'none'
+description: "A habit tracking application."
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -9,6 +9,19 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  provider: ^6.0.5
+  http: ^1.1.0
+  shared_preferences: ^2.2.0
+  flutter_secure_storage: ^8.0.0
+  intl: ^0.19.0
+  flutter_svg: ^2.0.7
+  fl_chart: ^0.63.0
+  table_calendar: ^3.0.9
+  shimmer: ^3.0.0
+  flutter_animate: ^4.2.0
+  flutter_local_notifications: ^16.0.0
+  timezone: ^0.9.2
+  rxdart: ^0.27.7
 
 dev_dependencies:
   flutter_test:
@@ -17,3 +30,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
