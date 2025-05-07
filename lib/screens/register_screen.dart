@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/input_field.dart';
-import '../widgets/loading_indicator.dart';
-import 'login_screen.dart';
 import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {

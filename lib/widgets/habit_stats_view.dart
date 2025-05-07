@@ -3,8 +3,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/habit.dart';
 import '../models/habit_track.dart';
-import '../utils/constants.dart';
-import '../utils/habit_utils.dart';
 
 class HabitStatsView extends StatelessWidget {
   final Habit habit;

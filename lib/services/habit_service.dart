@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import '../models/habit.dart';
 import '../models/habit_track.dart';
 import 'auth_service.dart';
-import '../utils/config.dart';
 
 class HabitService {
   final String baseUrl;

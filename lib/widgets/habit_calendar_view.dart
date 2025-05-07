@@ -3,7 +3,6 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/habit_track.dart';
-import '../utils/constants.dart';
 
 class HabitCalendarView extends StatefulWidget {
   final List<HabitTrackRecord> tracks;
